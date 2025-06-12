@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  trainova-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5009:5000"
+    volumes:
+      # Mount data directory to persist model and training data
+      - trainova_data:/app/trainova_feedback_network/data
+    restart: unless-stopped
+    environment:
+      - FLASK_ENV=production
+      # Add any other environment variables you might need
+
+volumes:
+  trainova_data:
+    # This creates a named volume to persist data between container restarts
