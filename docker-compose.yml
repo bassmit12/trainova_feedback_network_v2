@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "5009:5000"
+      - "5009:5009"
     volumes:
       # Mount data directory to persist model and training data
       - trainova_data:/app/trainova_feedback_network/data
