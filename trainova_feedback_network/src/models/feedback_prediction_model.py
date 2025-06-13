@@ -55,10 +55,16 @@ class FeedbackBasedPredictionModel:
 
         # Debug information if enabled
         if debug:
-            print(f"\nDebug - Processing {len(previous_workouts)} workouts for {exercise}")
+            print(f"\nDebug - Processing ALL {len(previous_workouts)} workouts for {exercise}")
+        
+        # Use ALL available workouts for maximum prediction accuracy (no limits)
+        all_workouts = previous_workouts
+        
+        if debug:
+            print(f"Using ALL {len(all_workouts)} workouts for optimal prediction")
         
         # Ensure proper date parsing and sorting
-        for workout in previous_workouts:
+        for workout in all_workouts:
             if 'date' in workout and isinstance(workout['date'], str):
                 try:
                     workout['date'] = pd.to_datetime(workout['date'])
@@ -67,27 +73,28 @@ class FeedbackBasedPredictionModel:
                         print(f"Date parsing error: {e} for date: {workout['date']}")
                     # Fallback to string comparison if datetime parsing fails
         
-        # Sort workouts by date if available to ensure we're using the most recent data
-        if 'date' in previous_workouts[0]:
-            previous_workouts = sorted(previous_workouts, key=lambda x: x['date'])
-            # Debug: Show date range
-            if debug and len(previous_workouts) > 1:
-                print(f"Date range: {previous_workouts[0]['date']} to {previous_workouts[-1]['date']}")
-                print(f"Latest workout: {previous_workouts[-1]['exercise']} - {previous_workouts[-1]['weight']}kg x {previous_workouts[-1]['reps']} reps")
+        # Sort workouts by date if available to ensure chronological order
+        if 'date' in all_workouts[0]:
+            all_workouts = sorted(all_workouts, key=lambda x: x['date'])
+            # Debug: Show comprehensive date range
+            if debug and len(all_workouts) > 1:
+                print(f"Complete date range: {all_workouts[0]['date']} to {all_workouts[-1]['date']}")
+                print(f"Total training span: {(all_workouts[-1]['date'] - all_workouts[0]['date']).days} days")
+                print(f"Latest workout: {all_workouts[-1]['exercise']} - {all_workouts[-1]['weight']}kg x {all_workouts[-1]['reps']} reps")
 
-        # Filter for the specific exercise
-        exercise_workouts = [w for w in previous_workouts if w.get('exercise') == exercise]
+        # Filter for the specific exercise from ALL available data
+        exercise_workouts = [w for w in all_workouts if w.get('exercise') == exercise]
         if not exercise_workouts:
             return {"weight": 0, "confidence": 0, "message": f"No data found for {exercise}"}
             
         if debug:
-            print(f"Found {len(exercise_workouts)} workouts for {exercise}")
+            print(f"Found {len(exercise_workouts)} total workouts for {exercise} in complete history")
             if len(exercise_workouts) > 0:
+                print(f"First {exercise} workout: {exercise_workouts[0]['weight']}kg x {exercise_workouts[0]['reps']} reps on {exercise_workouts[0]['date']}")
                 print(f"Latest {exercise} workout: {exercise_workouts[-1]['weight']}kg x {exercise_workouts[-1]['reps']} reps on {exercise_workouts[-1]['date']}")
 
-        # Focus on more recent workouts for progressive exercises
-        # Use last 5 workouts if available, otherwise use all
-        recent_workouts = exercise_workouts[-5:] if len(exercise_workouts) > 5 else exercise_workouts
+        # Use ALL available exercise workouts for comprehensive analysis
+        recent_workouts = exercise_workouts
 
         last_workout = recent_workouts[-1]
         last_weight = float(last_workout.get('weight', 0))  # Ensure we get a float
